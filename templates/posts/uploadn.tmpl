@@ -1,0 +1,15 @@
+{{define "posts/uploadn.html"}}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <title>上传文件示例</title>
+</head>
+<body>
+<form action="/posts/uploadn" method="post" enctype="multipart/form-data">
+    <input type="file" name="f1s">
+    <input type="file" name="f1s">
+    <input type="submit" value="上传">
+</form>
+</body>
+</html>
+{{end}}
