@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"time"
+
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +25,8 @@ func main() {
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/**/*")
 	// router.LoadHTMLFiles("./upload.html")
+
+	router.Use(m1)
 
 	router.GET("/hello", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -149,5 +153,94 @@ func main() {
 		})
 	})
 
+	router.GET("/qq", func(c *gin.Context) {
+		c.Redirect(http.StatusPermanentRedirect, "https://www.qq.com")
+	})
+
+	router.GET("/jack", func(c *gin.Context) {
+		c.Request.URL.Path = "/rose"
+		router.HandleContext(c)
+	})
+
+	router.GET("/rose", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "where is the diamond?",
+		})
+	})
+
+	router.GET("/login", authenticateIdentity, login)
+
+	router.Any("/any", func(c *gin.Context) {
+		switch c.Request.Method {
+		case http.MethodGet:
+			c.JSON(http.StatusOK, gin.H{
+				"message": "any_get",
+			})
+		default:
+			c.JSON(http.StatusOK, gin.H{
+				"message": "any_default",
+			})
+		}
+	})
+
+	show := router.Group("/show", checkSth(true))
+	{
+		show.GET("/girl", func(c *gin.Context) {
+			gender, ok := c.Get("gender")
+			if !ok {
+				gender = "undefined"
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"message": "I love this girl",
+				"gender":  gender,
+			})
+		})
+		show.GET("/boy", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{
+				"message": "This boy is so lovely",
+			})
+		})
+	}
+
 	router.Run(":8888")
+}
+
+func m1(c *gin.Context) {
+	start := time.Now()
+	fmt.Println("start time", start)
+	c.Next()
+	end := time.Since(start)
+	fmt.Println("consume time: ", end)
+}
+
+func authenticateIdentity(c *gin.Context) {
+	start := time.Now()
+	fmt.Println("authentication time", start)
+	name := c.Query("name")
+	pwd := c.Query("pwd")
+	if name == "admin" && pwd == "123" {
+		c.Next()
+	} else {
+		c.Abort()
+	}
+	end := time.Since(start)
+	fmt.Println("consume time: ", end)
+}
+
+func login(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "log in successfully",
+	})
+}
+
+func checkSth(needCheck bool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if needCheck {
+			fmt.Println("check something: ", time.Now())
+			c.Set("gender", "male")
+			c.Next()
+		} else {
+			c.Next()
+		}
+	}
 }
