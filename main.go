@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"three_girls/db"
 
 	"time"
 
@@ -201,6 +202,14 @@ func main() {
 			})
 		})
 	}
+
+	router.GET("/sql/insert", func(c *gin.Context) {
+
+		db.InitDatabase()
+		c.JSON(http.StatusOK, gin.H{
+			"message": "sql insert succeed",
+		})
+	})
 
 	router.Run(":8888")
 }
